@@ -1,0 +1,8 @@
+.defaults:
+  image: alpine:latest
+  before_script:
+    - apk update && apk add git && apk add openssh
+    - mkdir -p /root/.ssh
+    - echo "$SSH_priv_key" | tr -d '\r' > /root/.ssh/cicd && 
+      chmod 600 /root/.ssh/cicd
+    - git clone http://$GL_USERNAME:$GL_PASSWD@$GL_DNS_NAME/$CI_PROJECT_PATH

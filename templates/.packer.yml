@@ -1,0 +1,24 @@
+include:
+  - '/templates/.defaults.yml'
+dply_tmplt:
+  stage: dply_tmplt
+  extends: 
+    - .defaults
+  script:
+    - apk add packer
+    - cd $CI_PROJECT_DIR/packer/ubuntu-server-jammy
+    - >
+      packer build 
+      -var proxmox_api_url="$PM_API_URL" 
+      -var proxmox_api_token_id="$PKR_VAR_pm_api_token_id" 
+      -var proxmox_api_token_secret="$PKR_VAR_pm_api_token_secret" 
+      -var proxmox_vm_user="$VM_USER"
+      . 
+  rules:
+    - if: $TMPLT == null && $VM == null && $K3S == null && $INFRA == "1"
+      when: always
+    - if: $TMPLT == "1" && $VM == null && $K3S == null && $INFRA == null
+      when: always
+    - if: $TMPLT == "1" && $VM == "1" && $K3S == null && $INFRA == null
+      when: always
+    - when: never

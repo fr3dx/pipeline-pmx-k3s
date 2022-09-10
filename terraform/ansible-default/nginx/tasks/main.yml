@@ -1,0 +1,12 @@
+---
+# tasks file for nginx
+- name: Wait for automatic system updates
+  become: true
+  shell: while sudo fuser /var/lib/dpkg/{{ item }} >/dev/null 2>&1; do sleep 5; done;
+  with_items:
+    - lock
+    - lock-frontend
+
+- name: Install "nginx" package
+  ansible.builtin.apt:
+    name: nginx

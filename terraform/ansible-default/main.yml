@@ -1,0 +1,11 @@
+---
+- name: webserver install
+  hosts: all
+  become: true
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+
+  roles:
+  - nginx

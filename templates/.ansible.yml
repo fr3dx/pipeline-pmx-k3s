@@ -1,0 +1,23 @@
+dply_k3s:
+  stage: dply_k3s
+  image: alpine:latest
+  before_script:
+    - apk update && apk add git && apk add ansible && apk add openssh
+    - adduser -DG wheel $VM_USER
+    - mkdir -p /home/$VM_USER/.ssh
+    - echo "$SSH_priv_key" | tr -d '\r' > /home/$VM_USER/.ssh/cicd
+    - chmod 600 /home/$VM_USER/.ssh/cicd && 
+      chown $VM_USER:wheel /home/$VM_USER/.ssh/cicd && 
+      chmod 770 -R $CI_PROJECT_DIR
+  script:
+    - cd $CI_PROJECT_DIR/ansible
+#    - ansible all -m ping -i inventory/my-cluster/hosts.ini --key-file /home/$VM_USER/.ssh/cicd -u $VM_USER
+    - ansible-playbook ./site.yml -i ./inventory/my-cluster/hosts.ini -u $VM_USER --key-file /home/$VM_USER/.ssh/cicd
+  rules:
+    - if: $TMPLT == null && $VM == null && $K3S == null && $INFRA == "1"
+      when: on_success
+    - if: $TMPLT == null && $VM == null && $K3S == "1" && $INFRA == null
+      when: on_success
+    - if: $TMPLT == null && $VM == "1" && $K3S == "1" && $INFRA == null
+      when: on_success
+    - when: never

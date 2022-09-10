@@ -1,0 +1,43 @@
+include:
+  - '/templates/.defaults.yml'
+dstry_vm_plan:
+  stage: dstry_vm_plan
+  extends: 
+    - .defaults
+  script:
+    - apk add terraform
+    - echo "$SSH_pub_key" | tr -d '\r' > /root/.ssh/cicd.pub
+    - cd $CI_PROJECT_DIR/terraform/terraform-proxmox 
+    - >
+      terraform init 
+      -migrate-state
+      -backend-config=address=${GL_TFSTATE_ADDR} 
+      -backend-config=lock_address=${GL_TFSTATE_ADDR}/lock 
+      -backend-config=unlock_address=${GL_TFSTATE_ADDR}/lock 
+      -backend-config=username=${GL_USERNAME} 
+      -backend-config=password=${GL_TFSTATE_TOKEN} 
+      -backend-config=lock_method=POST 
+      -backend-config=unlock_method=DELETE 
+      -backend-config=retry_wait_min=5
+    - > 
+      terraform plan -lock=false -destroy -out dstry_vm.plan -input=false 
+      -var api_url="$PM_API_URL" 
+      -var api_token_id="$PM_API_TOKEN_ID" 
+      -var api_token_secret="$PM_API_TOKEN_SECRET"
+      -var user="$VM_USER" 
+      -var ssh_password="$TF_VAR_ssh_passwd" 
+    - if [ $? -eq 0 ]; then echo "Terraform plan OK"; fi || exit 1
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/terraform/terraform-proxmox/dstry_vm.plan
+    expire_in: 1 day
+  rules:
+    - if: $TMPLT == null && $VM == null && $K3S == null && $INFRA == "1"
+      when: manual
+    - if: $TMPLT == null && $VM == "1" && $K3S == null && $INFRA == null
+      when: manual
+    - if: $TMPLT == "1" && $VM == "1" && $K3S == null && $INFRA == null
+      when: manual
+    - if: $TMPLT == null && $VM == "1" && $K3S == "1" && $INFRA == null  
+      when: manual
+    - when: never

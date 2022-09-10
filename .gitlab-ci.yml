@@ -1,0 +1,16 @@
+stages:
+  - dply_tmplt
+  - dply_vm_plan
+  - dply_vm_apply
+  - dply_k3s
+  - dstry_vm_plan
+  - dstry_vm_apply
+
+
+include: 
+  - '/templates/.packer.yml'
+  - '/templates/.terraform_dply_vm_plan.yml'
+  - '/templates/.terraform_dply_vm_apply.yml'
+  - '/templates/.ansible.yml'
+  - '/templates/.terraform_dstry_vm_plan.yml'
+  - '/templates/.terraform_dstry_vm_apply.yml'
